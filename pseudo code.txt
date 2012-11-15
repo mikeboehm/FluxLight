@@ -1,0 +1,24 @@
+setup
+light is off
+
+if button pressed
+	if light on
+		fade out
+		set state as off
+	else
+		fade in
+		set state as on
+		
+		
+		
+button is pressed
+	buttonPress()		
+		check current state of button
+		set state accordingly
+			
+		loop {	
+			if state changes
+				make note
+			if state has changed twice within time frame
+				change mode
+		}
