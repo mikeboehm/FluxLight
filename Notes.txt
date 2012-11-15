@@ -1,0 +1,6 @@
+Potential calibration guide
+	From http://www.eraled.biz/projects/smd-5050-led-display.html
+	Brightness proportion ratio	R: G: B = 30%:60%:10%
+
+
+http://www.sciencedirect.com/science/article/pii/S0141938209000146

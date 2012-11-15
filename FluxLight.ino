@@ -1,7 +1,4 @@
-// color swirl! connect an RGB LED to the PWM pins as indicated
-// in the #defines
-// public domain, enjoy!
- 
+
 
 #define REDPIN 3
 #define GREENPIN 5
@@ -12,7 +9,9 @@ int fadeTime = 100;
 const int debounceDelay = 10;
 // Whether light is on or off
 int lightState = 0;
-int colour[] = {255,142,0};
+//int colour[] = {255,142,0};
+
+int colour[] = {77,153,25};
 
 void setup() {
   pinMode(REDPIN, OUTPUT);
@@ -87,18 +86,23 @@ void fadeIn() {
   for(int i = 0; i <= fadeTime; i++) {
 //    Serial.print('i: ');
 //    Serial.println(i);
-    redValue = (colour[0] / fadeTime) * i;
-    Serial.print(redValue);
-    Serial.print(" - ");
-    redValue = floor(redValue);
-    Serial.println(redValue);
+//  Red  
+//    redValue = (colour[0] / fadeTime) * i;
+//    redValue = floor(redValue);
+
+    // Get colours
+    redValue = floor((colour[0] / fadeTime) * i);
     greenValue = floor((colour[1] / fadeTime) * i);
     blueValue = floor((colour[2] / fadeTime) * i);
+   
+    // Debug
     Serial.print(redValue);
     Serial.print(", ");
     Serial.print(greenValue);
     Serial.print(", ");
     Serial.println(blueValue);
+    
+    //  Write to pins  
     analogWrite(REDPIN, redValue);
     analogWrite(GREENPIN, greenValue);
     analogWrite(BLUEPIN, blueValue);
