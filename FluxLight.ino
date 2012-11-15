@@ -7,11 +7,13 @@
 #define GREENPIN 5
 #define BLUEPIN 6
 const int button = 2;
+int fadeTime = 100;
 
 const int debounceDelay = 10;
 // Whether light is on or off
 int lightState = 0;
- 
+int colour[] = {255,142,0};
+
 void setup() {
   pinMode(REDPIN, OUTPUT);
   pinMode(GREENPIN, OUTPUT);
@@ -20,9 +22,9 @@ void setup() {
   int lightState = 0;
   Serial.begin(9600);
   
-  analogWrite(REDPIN, 255);
-  analogWrite(GREENPIN, 142);
-  analogWrite(BLUEPIN, 0);
+//  analogWrite(REDPIN, 255);
+//  analogWrite(GREENPIN, 142);
+//  analogWrite(BLUEPIN, 0);
   
   digitalWrite(button, HIGH);
   
@@ -78,23 +80,49 @@ void loop(){
 }
 
 void fadeIn() {
+  float redValue;
+  int greenValue;
+  int blueValue;
   Serial.println("fadeIn");
-  for(int i = 0; i <= 255; i++) {
+  for(int i = 0; i <= fadeTime; i++) {
 //    Serial.print('i: ');
 //    Serial.println(i);
-    analogWrite(REDPIN, i);
-    analogWrite(GREENPIN, i);
-    analogWrite(BLUEPIN, i);
+    redValue = (colour[0] / fadeTime) * i;
+    Serial.print(redValue);
+    Serial.print(" - ");
+    redValue = floor(redValue);
+    Serial.println(redValue);
+    greenValue = floor((colour[1] / fadeTime) * i);
+    blueValue = floor((colour[2] / fadeTime) * i);
+    Serial.print(redValue);
+    Serial.print(", ");
+    Serial.print(greenValue);
+    Serial.print(", ");
+    Serial.println(blueValue);
+    analogWrite(REDPIN, redValue);
+    analogWrite(GREENPIN, greenValue);
+    analogWrite(BLUEPIN, blueValue);
     delay(3);
   }
 }
 
 void fadeOut() {
+  float redValue;
+  int greenValue;
+  int blueValue;
   Serial.println("fadeOut");
-  for(int i = 255; i >= 0; i--) {
-    analogWrite(REDPIN, i);
-    analogWrite(GREENPIN, i);
-    analogWrite(BLUEPIN, i);
+  for(int i = fadeTime; i >= 0; i--) {
+    redValue = floor((colour[0] / fadeTime) * i);
+    greenValue = floor((colour[1] / fadeTime) * i);
+    blueValue = floor((colour[2] / fadeTime) * i);
+    Serial.print(redValue);
+    Serial.print(", ");
+    Serial.print(greenValue);
+    Serial.print(", ");
+    Serial.println(blueValue);
+    analogWrite(REDPIN, redValue);
+    analogWrite(GREENPIN, greenValue);
+    analogWrite(BLUEPIN, blueValue);
     delay(3);
   }
 }
