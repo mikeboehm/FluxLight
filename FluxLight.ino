@@ -6,6 +6,12 @@
   const int button = 2;
   int fadeTime = 100;
   
+	float redValue = 0;
+	float greenValue = 0;
+    float blueValue = 0;
+    boolean state = 0;
+
+  
   const int debounceDelay = 10;
   // Whether light is on or off
   int lightState = 0;
@@ -34,15 +40,15 @@
   
   
   boolean debounce(int pin) {
-    Serial.println('debounce');
+//    Serial.println("debounce");
     boolean state;
     boolean previousState;
     
     previousState = digitalRead(pin);
     for (int counter = 0; counter < debounceDelay; counter++) {
       delay(1);
-      Serial.print(' Counter: ');
-      Serial.println(counter);
+//      Serial.print(" Counter: ");
+//     Serial.println(counter);
       state = digitalRead(pin);
       if (state != previousState) {
         counter = 0;
@@ -63,19 +69,35 @@
   //  Serial.print('button value: ');
   //  Serial.println(digitalRead(button));
     
-  //  if(debounce(button)) {
-    if(buttonPress == LOW) {
-      Serial.print("Light state: ");
-      Serial.println(lightState);
-  //    analogWrite(REDPIN, 255);
-      if(lightState == 0) {
-        fadeIn();
-        lightState = 1;
-      } else {
-        fadeOut();
-        lightState = 0;
-      }
-    }
+    if(debounce(button)) {
+  //  if(buttonPress == LOW) {
+      plusOne();
+    } 
+  }
+  
+  void plusOne() {
+  	Serial.print("lightState ");
+  	Serial.print(lightState);
+  	Serial.print(" ");
+  	Serial.print("Red value: ");
+  	Serial.println(redValue);
+	if(floor(redValue) == 255 | lightState == 1) {
+		lightState = 1;
+		redValue--;
+		greenValue--;
+		blueValue--;
+	} else if (floor(redValue) == 0 | lightState == 0) {
+		lightState = 0;
+		redValue++;
+		greenValue++;
+	    blueValue++;
+	}
+      analogWrite(REDPIN, redValue);
+      analogWrite(GREENPIN, greenValue);
+      analogWrite(BLUEPIN, blueValue);
+      delay(3);
+
+	
   }
   
   void fadeIn() {
