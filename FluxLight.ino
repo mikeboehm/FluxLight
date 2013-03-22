@@ -79,17 +79,17 @@
   	Serial.print("lightState ");
   	Serial.print(lightState);
   	Serial.print(" ");
-  	Serial.print("Red value: ");
-  	Serial.println(redValue);
+  	Serial.print("Blue value: ");
+  	Serial.println(blueValue);
 	if(floor(redValue) == 255 | lightState == 1) {
 		lightState = 1;
-		redValue--;
-		greenValue--;
-		blueValue--;
-	} else if (floor(redValue) == 0 | lightState == 0) {
+//		redValue--;
+//		greenValue--;
+//		blueValue--;
+	} else if (floor(blueValue) == 0 | lightState == 0) {
 		lightState = 0;
-		redValue++;
-		greenValue++;
+//		redValue++;
+//		greenValue++;
 	    blueValue++;
 	}
       analogWrite(REDPIN, redValue);
