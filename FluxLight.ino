@@ -8,9 +8,9 @@
 /* Set the appropriate digital I/O pin connections
   CE_PIN stands for "clock-enable"
   On some boards this may be labeled "RST", or */
-    uint8_t CE_PIN   = 13; // RST
-    uint8_t IO_PIN   = 12; // DAT
-    uint8_t SCLK_PIN = 11; // CLK
+    uint8_t CE_PIN   = 12; // RST
+    uint8_t IO_PIN   = 11; // DAT
+    uint8_t SCLK_PIN = 10; // CLK
     
 /* Left to right when plugged into a breadboard
 	VCC
@@ -48,11 +48,18 @@
 //	int colour[] = {77,153,25};
 	int colour[] = {255,255,255};
 	
+	int timeOfAlarm[] = {7,0}; // 07:00
+	int dawnDuration = 90; // 90 min
+	int currentTime[] = {0,0}; // Midnight?
+	int alarmTime;
+	
 	float redMax = colour[0];
 	float greenMax = colour[1];
 	float blueMax = colour[2];
 	
 	void setup() {
+		alarmTime = (timeOfAlarm[0] * 60) + timeOfAlarm[1];
+		alarmTime = alarmTime - dawnDuration;
 		// Set pin modes
 		pinMode(REDPIN, OUTPUT);
 		pinMode(GREENPIN, OUTPUT);
@@ -64,7 +71,7 @@
 		digitalWrite(button, HIGH);
 		
 		Serial.println("FluxLight 3000 initiated...");	
-
+		Serial.println(alarmTime);
 		float test = colour[2]/4;		
 		Serial.println(test,3);
 
@@ -90,6 +97,39 @@
 		}
 */
 	}
+  
+  int is_it_time_to_start_waking_up_yet() {
+  	/* Get the current time and date from the chip */
+	Time time = rtc.time();
+
+	// Format time into DATETIME
+	  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+           time.yr, time.mon, time.date,
+           time.hr, time.min, time.sec);
+    
+    int currentTimeInMinutes = (time.hr * 60) + time.min;
+    Serial.print('current time in minutes ');
+    Serial.println(currentTimeInMinutes);
+
+    int turnOff = alarmTime + 180;
+
+    Serial.print('turn off, in minutes ');
+    Serial.println(turnOff);
+    
+    Serial.print('Alarm time, in minutes ');
+    Serial.println(alarmTime);
+
+    if(currentTimeInMinutes >= alarmTime & currentTimeInMinutes <= turnOff) {
+		int step = currentTimeInMinutes - alarmTime;
+		return step;
+    } else {
+    	return 0;
+    }
+           
+	/* Print the formatted string to serial so we can see the time */
+		Serial.println(buf);
+
+  }
   
   void print_time() {
 	/* Get the current time and date from the chip */
@@ -126,7 +166,11 @@
 	  return false;
 	}
   }
-   
+  
+  void getTime() {
+  
+  }
+  
   void loop(){
 	int buttonPress = digitalRead(button);
   //  Serial.println('loop');
@@ -144,33 +188,22 @@
   		}
 //	  plusOne();
 	}
-	print_time();	
+//	getTime();
+//	print_time();	
+
+		int level = is_it_time_to_start_waking_up_yet();
+		Serial.print('Level: ');
+		Serial.println(level);
+		make_it_light(100);
+		delay(1000);
   }
   
-  // Fades the light up and down
-  void plusOne() {
-  	Serial.print("lightState ");
-  	Serial.print(lightState);
-  	Serial.print(" ");
-  	Serial.print("Blue value: ");
-  	Serial.println(blueValue);
-	if(floor(redValue) == 255 | lightState == 1) {
-		lightState = 1;
-//		redValue--;
-//		greenValue--;
-//		blueValue--;
-	} else if (floor(blueValue) == 0 | lightState == 0) {
-		lightState = 0;
-//		redValue++;
-//		greenValue++;
-		 blueValue++;
-	}
-	  analogWrite(REDPIN, redValue);
-	  analogWrite(GREENPIN, greenValue);
-	  analogWrite(BLUEPIN, blueValue);
-	  delay(3);
+  void make_it_light(int level) {
+	  //  Write to pins	 
+	  analogWrite(REDPIN, level);
+	  analogWrite(GREENPIN, level);
+	  analogWrite(BLUEPIN, level);
 
-	
   }
   
   void fadeIn() {
