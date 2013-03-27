@@ -1,5 +1,33 @@
-  
-	// Define pins	  
+ /* Libraries for clock */
+    #include <stdio.h>
+    #include <string.h>
+    #include <DS1302.h>
+
+// Connect clock to 5v pin (Mike)
+
+/* Set the appropriate digital I/O pin connections
+  CE_PIN stands for "clock-enable"
+  On some boards this may be labeled "RST", or */
+    uint8_t CE_PIN   = 13; // RST
+    uint8_t IO_PIN   = 12; // DAT
+    uint8_t SCLK_PIN = 11; // CLK
+    
+/* Left to right when plugged into a breadboard
+	VCC
+	GND
+	CLK
+	DAT
+	RST
+*/    
+	
+ /* Create buffers */ 
+	char buf[50];
+
+/* Create a DS1302 object */
+    DS1302 rtc(CE_PIN, IO_PIN, SCLK_PIN);
+	
+
+	// Define pins for LEDs
 	#define REDPIN 3
 	#define GREENPIN 5
 	#define BLUEPIN 6
@@ -50,6 +78,7 @@
 		
 		Serial.println(1.23456, 4);
 		
+/*
 		for(int i = 0; i<=255; i++) {
 			Serial.println(i);
 			analogWrite(REDPIN, i);
@@ -59,7 +88,22 @@
 			analogWrite(BLUEPIN, i);
 			delay(100);
 		}
+*/
 	}
+  
+  void print_time() {
+	/* Get the current time and date from the chip */
+	Time time = rtc.time();
+
+	// Format time into DATETIME
+	  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+           time.yr, time.mon, time.date,
+           time.hr, time.min, time.sec);
+           
+	/* Print the formatted string to serial so we can see the time */
+		Serial.println(buf);
+
+}
   
   // Button debouncer
   boolean debounce(int pin) {
@@ -99,7 +143,8 @@
   			lightState = 0;
   		}
 //	  plusOne();
-	} 
+	}
+	print_time();	
   }
   
   // Fades the light up and down
