@@ -48,8 +48,9 @@
 //	int colour[] = {77,153,25};
 	int colour[] = {255,255,255};
 	
-	int timeOfAlarm[] = {7,0}; // 07:00
-	int dawnDuration = 90; // 90 min
+//	int timeOfAlarm[] = {7,0}; // 07:00am
+	int timeOfAlarm[] = {23,0}; // 11:00pm
+	int dawnDuration = 110; // 90 min
 	int currentTime[] = {0,0}; // Midnight?
 	int alarmTime;
 	
@@ -58,9 +59,7 @@
 	float blueMax = colour[2];
 	
 	void setup() {
-		alarmTime = (timeOfAlarm[0] * 60) + timeOfAlarm[1];
-		alarmTime = alarmTime - dawnDuration;
-		// Set pin modes
+				// Set pin modes
 		pinMode(REDPIN, OUTPUT);
 		pinMode(GREENPIN, OUTPUT);
 		pinMode(BLUEPIN, OUTPUT);
@@ -71,6 +70,14 @@
 		digitalWrite(button, HIGH);
 		
 		Serial.println("FluxLight 3000 initiated...");	
+		alarmTime = (timeOfAlarm[0] * 60) + timeOfAlarm[1];
+		Serial.print("Dawn is at: ");
+		Serial.println(alarmTime);
+		
+		alarmTime = alarmTime - dawnDuration;
+
+		
+		Serial.print("Sunrise begins at ");
 		Serial.println(alarmTime);
 		float test = colour[2]/4;		
 		Serial.println(test,3);
@@ -98,7 +105,7 @@
 */
 	}
   
-  int is_it_time_to_start_waking_up_yet() {
+  int get_level() {
   	/* Get the current time and date from the chip */
 	Time time = rtc.time();
 
@@ -108,15 +115,15 @@
            time.hr, time.min, time.sec);
     
     int currentTimeInMinutes = (time.hr * 60) + time.min;
-    Serial.print('current time in minutes ');
+    Serial.print("current time in minutes ");
     Serial.println(currentTimeInMinutes);
 
     int turnOff = alarmTime + 180;
 
-    Serial.print('turn off, in minutes ');
+    Serial.print("turn off, in minutes ");
     Serial.println(turnOff);
     
-    Serial.print('Alarm time, in minutes ');
+    Serial.print("Alarm time, in minutes ");
     Serial.println(alarmTime);
 
     if(currentTimeInMinutes >= alarmTime & currentTimeInMinutes <= turnOff) {
@@ -167,10 +174,6 @@
 	}
   }
   
-  void getTime() {
-  
-  }
-  
   void loop(){
 	int buttonPress = digitalRead(button);
   //  Serial.println('loop');
@@ -191,18 +194,19 @@
 //	getTime();
 //	print_time();	
 
-		int level = is_it_time_to_start_waking_up_yet();
-		Serial.print('Level: ');
+		int level = get_level();
+
+		Serial.print("Level: ");
 		Serial.println(level);
-		make_it_light(100);
+		make_it_light(level);
 		delay(1000);
   }
   
   void make_it_light(int level) {
 	  //  Write to pins	 
 	  analogWrite(REDPIN, level);
-	  analogWrite(GREENPIN, level);
-	  analogWrite(BLUEPIN, level);
+//	  analogWrite(GREENPIN, level);
+//	  analogWrite(BLUEPIN, level);
 
   }
   
