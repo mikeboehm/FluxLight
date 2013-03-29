@@ -48,48 +48,57 @@
 //	int colour[] = {77,153,25};
 	int colour[] = {255,255,255};
 	
-//	int timeOfAlarm[] = {7,0}; // 07:00am
-	int timeOfAlarm[] = {23,0}; // 11:00pm
-	int dawnDuration = 110; // 90 min
-	int currentTime[] = {0,0}; // Midnight?
-	int alarmTime;
+//	int sunriseTime[] = {7,0}; // 07:00am
+	int dawn[] = {7,0}; // 11:00pm
+	int preDawnDurationInMinutes = 20; // The time it takes to fade the red in
+	int sunriseDurationInMinutes = 110; // The time it takes from red to white
+	int	totalSequenceTime = preDawnDurationInMinutes + sunriseDurationInMinutes;
+	
+	
+	int autoShutoffDelay = 60; // How long to leave light on for
+		
+	int currentTime[] = {0,0}; // Set to zero
+	int timeOfDawnInMinutes;
+	int timeToBeginSunriseSequence;
+	
+	// Time of dawn/sunrise in minutes
+	timeOfDawnInMinutes = (dawn[0] * 60) + dawn[1];
+	Serial.print("Dawn is at: ");
+	Serial.println(timeOfDawnInMinutes);
+	
+	// Calculate the time to start sequence
+	timeToBeginSunriseSequence = timeOfDawnInMinutes - totalSequenceTime;
+
+	
 	
 	float redMax = colour[0];
 	float greenMax = colour[1];
 	float blueMax = colour[2];
 	
 	void setup() {
-				// Set pin modes
+		// Set pin modes
 		pinMode(REDPIN, OUTPUT);
 		pinMode(GREENPIN, OUTPUT);
 		pinMode(BLUEPIN, OUTPUT);
 		pinMode(button, INPUT);
 		int lightState = 0;
-		Serial.begin(9600);
-			  
 		digitalWrite(button, HIGH);
-		
-		Serial.println("FluxLight 3000 initiated...");	
-		alarmTime = (timeOfAlarm[0] * 60) + timeOfAlarm[1];
-		Serial.print("Dawn is at: ");
-		Serial.println(alarmTime);
-		
-		alarmTime = alarmTime - dawnDuration;
 
+
+		Serial.begin(9600);
+		Serial.println("FluxLight 3000 initiated...");	
 		
 		Serial.print("Sunrise begins at ");
-		Serial.println(alarmTime);
+		Serial.println(timeToBeginSunriseSequence);
+
+		// Float tests
 		float test = colour[2]/4;		
 		Serial.println(test,3);
-
 		test = colour[2]/18;
-		Serial.println(test,3);
-		
-		float myColour = colour[2];
-		
+		Serial.println(test,3);		
+		float myColour = colour[2];		
 		test = myColour/100;
-		Serial.println(test,3);
-		
+		Serial.println(test,3);		
 		Serial.println(1.23456, 4);
 		
 /*
@@ -118,16 +127,16 @@
     Serial.print("current time in minutes ");
     Serial.println(currentTimeInMinutes);
 
-    int turnOff = alarmTime + 180;
+    int turnOff = timeOfDawnInMinutes + 180;
 
     Serial.print("turn off, in minutes ");
     Serial.println(turnOff);
     
     Serial.print("Alarm time, in minutes ");
-    Serial.println(alarmTime);
+    Serial.println(timeOfDawnInMinutes);
 
-    if(currentTimeInMinutes >= alarmTime & currentTimeInMinutes <= turnOff) {
-		int step = currentTimeInMinutes - alarmTime;
+    if(currentTimeInMinutes >= timeOfDawnInMinutes & currentTimeInMinutes <= turnOff) {
+		int step = currentTimeInMinutes - timeOfDawnInMinutes;
 		return step;
     } else {
     	return 0;
@@ -174,33 +183,14 @@
 	}
   }
   
-  void loop(){
-	int buttonPress = digitalRead(button);
-  //  Serial.println('loop');
-  //  Serial.print('button value: ');
-  //  Serial.println(digitalRead(button));
-	
-	if(debounce(button)) {
-  //  if(buttonPress == LOW) {
-  		if(lightState == 0) {
-  			fadeIn();
-  			lightState = 1;
-  		} else {
-  			fadeOut();
-  			lightState = 0;
-  		}
-//	  plusOne();
-	}
-//	getTime();
-//	print_time();	
-
+	void loop(){
 		int level = get_level();
 
 		Serial.print("Level: ");
 		Serial.println(level);
 		make_it_light(level);
 		delay(1000);
-  }
+	}
   
   void make_it_light(int level) {
 	  //  Write to pins	 
