@@ -49,25 +49,22 @@
 	int colour[] = {255,255,255};
 	
 //	int sunriseTime[] = {7,0}; // 07:00am
-	int dawn[] = {7,0}; // 11:00pm
+//	int dawn[] = {7,0}; // 11:00pm
+	int dawn[] = {15,30}; // 11:00pm
 	int preDawnDurationInMinutes = 20; // The time it takes to fade the red in
 	int sunriseDurationInMinutes = 110; // The time it takes from red to white
-	int	totalSequenceTime = preDawnDurationInMinutes + sunriseDurationInMinutes;
+	int	totalSequenceDuration = preDawnDurationInMinutes + sunriseDurationInMinutes;
 	
 	
 	int autoShutoffDelay = 60; // How long to leave light on for
 		
 	int currentTime[] = {0,0}; // Set to zero
-	int timeOfDawnInMinutes;
-	int timeToBeginSunriseSequence;
 	
 	// Time of dawn/sunrise in minutes
-	timeOfDawnInMinutes = (dawn[0] * 60) + dawn[1];
-	Serial.print("Dawn is at: ");
-	Serial.println(timeOfDawnInMinutes);
+	int timeOfDawnInMinutes = (dawn[0] * 60) + dawn[1];
 	
 	// Calculate the time to start sequence
-	timeToBeginSunriseSequence = timeOfDawnInMinutes - totalSequenceTime;
+	int timeToBeginSunriseSequence = timeOfDawnInMinutes - totalSequenceDuration;
 
 	
 	
@@ -88,6 +85,10 @@
 		Serial.begin(9600);
 		Serial.println("FluxLight 3000 initiated...");	
 		
+		Serial.print("Dawn is at: ");
+		Serial.println(timeOfDawnInMinutes);
+
+		
 		Serial.print("Sunrise begins at ");
 		Serial.println(timeToBeginSunriseSequence);
 
@@ -101,6 +102,15 @@
 		Serial.println(test,3);		
 		Serial.println(1.23456, 4);
 		
+		Time time = rtc.time();	
+		// Format time into DATETIME
+		  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+	           time.yr, time.mon, time.date,
+	           time.hr, time.min, time.sec);
+	    int currentTimeInMinutes = (time.hr * 60) + time.min;      
+	    Serial.print("Current time is: ");
+	    Serial.println(buf);
+		
 /*
 		for(int i = 0; i<=255; i++) {
 			Serial.println(i);
@@ -113,6 +123,98 @@
 		}
 */
 	}
+	int set_level(){
+		float value = 0; // Value of either Red or Green AND Blue RGBs
+	//	check the time
+	  	/* Get the current time and date from the chip */
+		Time time = rtc.time();
+	
+		// Format time into DATETIME
+		  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+	           time.yr, time.mon, time.date,
+	           time.hr, time.min, time.sec);
+	    int currentTimeInMinutes = (time.hr * 60) + time.min;      
+	    Serial.print("Current time, in minutes ");
+	    Serial.println(currentTimeInMinutes);
+	    
+	//		if time is <= dawnTime && time >= sequenceBeginTime {
+		if(currentTimeInMinutes <= timeOfDawnInMinutes & currentTimeInMinutes >= timeToBeginSunriseSequence) {
+			int minutesIntoSequence = totalSequenceDuration - (timeOfDawnInMinutes - currentTimeInMinutes);
+			
+			Serial.print("minutesIntoSequence: ");
+			Serial.println(minutesIntoSequence);
+			Serial.print("timeOfDawnInMinutes: ");
+			Serial.println(timeOfDawnInMinutes);
+			Serial.print("currentTimeInMinutes: ");
+			Serial.println(currentTimeInMinutes);
+			Serial.print("Number of seconds: ");
+			Serial.println(time.sec);
+
+			
+			// if we're in preDawn mode
+			if(minutesIntoSequence <= preDawnDurationInMinutes) {				
+				Serial.println("pre dawn mode");
+				// set RGB values accordingly
+				value = (255/preDawnDurationInMinutes) * minutesIntoSequence;
+//				value = (minutesIntoSequence/preDawnDurationInMinutes) * 255;
+				redValue = floor(value);
+				greenValue = 0;
+				blueValue = 0;
+			// else if we're in sunrise mode
+			} else if (minutesIntoSequence > preDawnDurationInMinutes) {
+				Serial.println("sunrise mode");
+
+				// set RGB values accordingly				
+				value = (255/sunriseDurationInMinutes) * minutesIntoSequence;
+//				value = ((minutesIntoSequence - sunriseDurationInMinutes)/sunriseDurationInMinutes) * 255;
+				redValue = 255;
+				greenValue = floor(value);
+				blueValue = floor(value);
+			// else if time is > dawnTime && time <= dawnTime + shutOffDelay
+			} else if (currentTimeInMinutes > timeOfDawnInMinutes & currentTimeInMinutes < (timeOfDawnInMinutes + autoShutoffDelay)) {
+				Serial.println("shutoff delay mode");
+
+				// keep lights on
+				redValue = 255;
+				greenValue = 255;
+				blueValue = 255;
+			// we're neither in sunrise mode, nor shutOffDelay mode
+			} else {
+				Serial.println("Fast asleep");
+
+				redValue = 0;
+				greenValue = 0;
+				blueValue = 0;
+			}
+
+			if(value) {
+				Serial.print("value: ");
+				Serial.println(value);
+			}
+			
+			analogWrite(REDPIN, redValue);
+			analogWrite(GREENPIN, greenValue);
+			analogWrite(BLUEPIN, blueValue);
+			
+			Serial.print("R: ");
+			Serial.print(redValue);
+			Serial.print(" G: ");
+			Serial.print(greenValue);
+			Serial.print(" B: ");
+			Serial.println(blueValue);
+			Serial.println("");
+		}
+//		
+
+	
+	//		} 
+	//			keep lights on
+	//		else
+	//			we're neither in sunrise mode, nor shutOffDelay mode
+	//			do nothing		
+			  
+	}
+  
   
   int get_level() {
   	/* Get the current time and date from the chip */
@@ -184,12 +286,12 @@
   }
   
 	void loop(){
-		int level = get_level();
+		set_level();
 
-		Serial.print("Level: ");
-		Serial.println(level);
-		make_it_light(level);
-		delay(1000);
+//		Serial.print("Level: ");
+//		Serial.println(level);
+//		make_it_light(level);
+		delay(3000);
 	}
   
   void make_it_light(int level) {
