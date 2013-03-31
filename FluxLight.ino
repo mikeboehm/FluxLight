@@ -98,16 +98,6 @@
 		
 		Serial.print("Sunrise begins at ");
 		Serial.println(timeToBeginSunriseSequence);
-
-		// Float tests
-		float test = readingLightColour[2]/4;		
-		Serial.println(test,3);
-		test = readingLightColour[2]/18;
-		Serial.println(test,3);		
-		float myColour = readingLightColour[2];		
-		test = myColour/100;
-		Serial.println(test,3);		
-		Serial.println(1.23456, 4);
 		
 		Time time = rtc.time();	
 		// Format time into DATETIME
@@ -116,19 +106,7 @@
 	           time.hr, time.min, time.sec);
 	    int currentTimeInMinutes = (time.hr * 60) + time.min;      
 	    Serial.print("Current time is: ");
-	    Serial.println(buf);
-		
-/*
-		for(int i = 0; i<=255; i++) {
-			Serial.println(i);
-			analogWrite(REDPIN, i);
-			delay(100);
-			analogWrite(GREENPIN, i);
-			delay(100);
-			analogWrite(BLUEPIN, i);
-			delay(100);
-		}
-*/
+	    Serial.println(buf);		
 	}
 	
 	void readingLights() {
@@ -155,50 +133,23 @@
 	    // time.day
 	    // Day 1 is Sunday
 	    int currentTimeInMinutes = (time.hr * 60) + time.min;      
-	    Serial.print("Current time, in minutes ");
-	    Serial.println(currentTimeInMinutes);
 	    
-	//		if time is <= dawnTime && time >= sequenceBeginTime {
+		// if time is <= dawnTime & time >= sequenceBeginTime
 		if(currentTimeInMinutes <= timeOfDawnInMinutes & currentTimeInMinutes >= timeToBeginSunriseSequence) {
 			int minutesIntoSequence = totalSequenceDuration - (timeOfDawnInMinutes - currentTimeInMinutes);
-			
-			Serial.print("minutesIntoSequence: ");
-			Serial.println(minutesIntoSequence);
-			Serial.print("timeOfDawnInMinutes: ");
-			Serial.println(timeOfDawnInMinutes);
-			Serial.print("currentTimeInMinutes: ");
-			Serial.println(currentTimeInMinutes);
-			Serial.print("Number of seconds: ");
-			Serial.println(time.sec);
 
-			
 			// if we're in preDawn mode
 			if(minutesIntoSequence <= preDawnDurationInMinutes) {				
-				Serial.println("pre dawn mode");
 				// set RGB values accordingly
 				value = (255/preDawnDurationInMinutes) * minutesIntoSequence;
-//				value = (minutesIntoSequence/preDawnDurationInMinutes) * 255;
 				redValue = floor(value);
 				greenValue = 0;
 				blueValue = 0;
 			// else if we're in sunrise mode
 			} else if (minutesIntoSequence > preDawnDurationInMinutes) {
-				Serial.println("sunrise mode");
-				Serial.print("sunriseDurationInMinutes");
-				Serial.println(sunriseDurationInMinutes);
-
-				Serial.print("(minutesIntoSequence-preDawnDurationInMinutes)");
-				Serial.println((minutesIntoSequence-preDawnDurationInMinutes));
-
-				
 				// set RGB values accordingly				
 				value = (255/sunriseDurationInMinutes) * (minutesIntoSequence-preDawnDurationInMinutes);
 
-				Serial.print("floor(value)");
-				Serial.println(floor(value));
-
-
-//				value = ((minutesIntoSequence - sunriseDurationInMinutes)/sunriseDurationInMinutes) * 255;
 				redValue = 255;
 				greenValue = floor(value);
 				blueValue = floor(value);
@@ -225,63 +176,14 @@
 			Serial.println(value);
 		}
 		
+		// Set colours
 		analogWrite(REDPIN, redValue);
 		analogWrite(GREENPIN, greenValue);
 		analogWrite(BLUEPIN, blueValue);
 		
-		Serial.print("R: ");
-		Serial.print(redValue);
-		Serial.print(" G: ");
-		Serial.print(greenValue);
-		Serial.print(" B: ");
-		Serial.println(blueValue);
-		Serial.println("");
-
-		delay(3000);
-//		
-
-	
-	//		} 
-	//			keep lights on
-	//		else
-	//			we're neither in sunrise mode, nor shutOffDelay mode
-	//			do nothing		
-			  
+		delay(3000);			  
 	}
   
-  
-  int get_level() {
-  	/* Get the current time and date from the chip */
-	Time time = rtc.time();
-
-	// Format time into DATETIME
-	  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-           time.yr, time.mon, time.date,
-           time.hr, time.min, time.sec);
-    
-    int currentTimeInMinutes = (time.hr * 60) + time.min;
-    Serial.print("current time in minutes ");
-    Serial.println(currentTimeInMinutes);
-
-    int turnOff = timeOfDawnInMinutes + 180;
-
-    Serial.print("turn off, in minutes ");
-    Serial.println(turnOff);
-    
-    Serial.print("Alarm time, in minutes ");
-    Serial.println(timeOfDawnInMinutes);
-
-    if(currentTimeInMinutes >= timeOfDawnInMinutes & currentTimeInMinutes <= turnOff) {
-		int step = currentTimeInMinutes - timeOfDawnInMinutes;
-		return step;
-    } else {
-    	return 0;
-    }
-           
-	/* Print the formatted string to serial so we can see the time */
-		Serial.println(buf);
-
-  }
   
   void print_time() {
 	/* Get the current time and date from the chip */
@@ -308,12 +210,13 @@
 		delay(1);
 				
 		state = digitalRead(pin);
-		if (state == 0) {
+		if (state == 0) { // Button is currently being pressed
 			sameCounter++;
 			previousState = state;
 		}
 	}
 	
+	// If the state has been the same for the the requisite number of miliseconds
 	if(sameCounter == debounceDelay) {
 	  return true;
 	} else {
@@ -327,15 +230,12 @@
 			readingLights();
 		}
 		
-		// If the reading lights aren't on
+		// If the reading lights aren't on, continue the simulator
 		if(lightMode == 0) {
 			set_level();
 		}		
 
-//		Serial.print("Level: ");
-//		Serial.println(level);
-//		make_it_light(level);
-		delay(3000);
+//		delay(3000);
 	}
   
   void make_it_light(int level) {
