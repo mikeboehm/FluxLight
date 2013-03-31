@@ -348,13 +348,7 @@
   
   void fadeIn() {
 	Serial.println("fadeIn");
-	for(int i = 0; i <= fadeTime; i++) {
-  //	Serial.print('i: ');
-  //	Serial.println(i);
-  //  Red  
-  //	redValue = (colour[0] / fadeTime) * i;
-  //	redValue = floor(redValue);
-  
+	for(int i = 0; i <= fadeTime; i++) {  
 	  // Get colours
 //	  Serial.println((redMax / fadeTime) * i);
 	  redValue = floor((redMax / fadeTime) * i);
@@ -377,12 +371,9 @@
   }
   
   void fadeOut() {
-//  	float redValue;
-//	float greenValue;
-//	float blueValue;
 	Serial.println("fadeOut");
 	for(int i = fadeTime; i >= 0; i--) {
-	  redValue = floor(((redMax / fadeTime) * i / fadeTime) * i);
+	  redValue = floor((redMax / fadeTime) * i);
 	  greenValue = floor((greenMax / fadeTime) * i);
 	  blueValue = floor((blueMax / fadeTime) * i);
 	  Serial.print(redValue);
