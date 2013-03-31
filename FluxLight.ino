@@ -32,7 +32,6 @@
 	#define GREENPIN 5
 	#define BLUEPIN 6
 	const int button = 2;
-	int fadeTime = 100;
   
 	// Define global variables
 	// COlour values
@@ -42,17 +41,17 @@
 	boolean state = 0;
 	const int debounceDelay = 10;
 	// Whether light is on or off
-	int lightState = 0;
+//	int lightState = 0;
 	//int colour[] = {255,142,0};
   
 //	int colour[] = {77,153,25};
-	int colour[] = {255,255,255};
+	
 	
 //	int sunriseTime[] = {7,0}; // 07:00am
 //	int dawn[] = {7,0}; // 11:00pm
-	int dawn[] = {15,30}; // 11:00pm
+	int dawn[] = {7, 0}; // 11:00pm
 	int preDawnDurationInMinutes = 20; // The time it takes to fade the red in
-	int sunriseDurationInMinutes = 110; // The time it takes from red to white
+	int sunriseDurationInMinutes = 40; // The time it takes from red to white
 	int	totalSequenceDuration = preDawnDurationInMinutes + sunriseDurationInMinutes;
 	
 	
@@ -65,12 +64,15 @@
 	
 	// Calculate the time to start sequence
 	int timeToBeginSunriseSequence = timeOfDawnInMinutes - totalSequenceDuration;
-
 	
 	
-	float redMax = colour[0];
-	float greenMax = colour[1];
-	float blueMax = colour[2];
+	// reading light settings
+	int readingLightColour[] = {255,100,0};
+	int lightMode = 0;
+	int  fadeTime = 100;
+	float redMax = readingLightColour[0];
+	float greenMax = readingLightColour[1];
+	float blueMax = readingLightColour[2];
 	
 	void setup() {
 		// Set pin modes
@@ -86,18 +88,23 @@
 		Serial.println("FluxLight 3000 initiated...");	
 		
 		Serial.print("Dawn is at: ");
-		Serial.println(timeOfDawnInMinutes);
+		Serial.print(dawn[0]);
+		Serial.print(":");
+		Serial.print(dawn[1]);
+		Serial.print(" (");
+		Serial.print(timeOfDawnInMinutes);
+		Serial.println(")");
 
 		
 		Serial.print("Sunrise begins at ");
 		Serial.println(timeToBeginSunriseSequence);
 
 		// Float tests
-		float test = colour[2]/4;		
+		float test = readingLightColour[2]/4;		
 		Serial.println(test,3);
-		test = colour[2]/18;
+		test = readingLightColour[2]/18;
 		Serial.println(test,3);		
-		float myColour = colour[2];		
+		float myColour = readingLightColour[2];		
 		test = myColour/100;
 		Serial.println(test,3);		
 		Serial.println(1.23456, 4);
@@ -123,6 +130,17 @@
 		}
 */
 	}
+	
+	void readingLights() {
+		if(lightMode == 0) {
+			fadeIn();
+			lightMode = 1;
+		} else {
+			fadeOut();
+			lightMode = 0;		
+		}
+	}
+	
 	int set_level(){
 		float value = 0; // Value of either Red or Green AND Blue RGBs
 	//	check the time
@@ -133,6 +151,9 @@
 		  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
 	           time.yr, time.mon, time.date,
 	           time.hr, time.min, time.sec);
+	           
+	    // time.day
+	    // Day 1 is Sunday
 	    int currentTimeInMinutes = (time.hr * 60) + time.min;      
 	    Serial.print("Current time, in minutes ");
 	    Serial.println(currentTimeInMinutes);
@@ -163,47 +184,60 @@
 			// else if we're in sunrise mode
 			} else if (minutesIntoSequence > preDawnDurationInMinutes) {
 				Serial.println("sunrise mode");
+				Serial.print("sunriseDurationInMinutes");
+				Serial.println(sunriseDurationInMinutes);
 
+				Serial.print("(minutesIntoSequence-preDawnDurationInMinutes)");
+				Serial.println((minutesIntoSequence-preDawnDurationInMinutes));
+
+				
 				// set RGB values accordingly				
-				value = (255/sunriseDurationInMinutes) * minutesIntoSequence;
+				value = (255/sunriseDurationInMinutes) * (minutesIntoSequence-preDawnDurationInMinutes);
+
+				Serial.print("floor(value)");
+				Serial.println(floor(value));
+
+
 //				value = ((minutesIntoSequence - sunriseDurationInMinutes)/sunriseDurationInMinutes) * 255;
 				redValue = 255;
 				greenValue = floor(value);
 				blueValue = floor(value);
 			// else if time is > dawnTime && time <= dawnTime + shutOffDelay
-			} else if (currentTimeInMinutes > timeOfDawnInMinutes & currentTimeInMinutes < (timeOfDawnInMinutes + autoShutoffDelay)) {
-				Serial.println("shutoff delay mode");
+			} 
+		} else if (currentTimeInMinutes > timeOfDawnInMinutes & currentTimeInMinutes < (timeOfDawnInMinutes + autoShutoffDelay)) {
+			Serial.println("shutoff delay mode");
 
-				// keep lights on
-				redValue = 255;
-				greenValue = 255;
-				blueValue = 255;
-			// we're neither in sunrise mode, nor shutOffDelay mode
-			} else {
-				Serial.println("Fast asleep");
+			// keep lights on
+			redValue = 255;
+			greenValue = 255;
+			blueValue = 255;
+		// we're neither in sunrise mode, nor shutOffDelay mode
+		} else {
+			Serial.println("Fast asleep");
 
-				redValue = 0;
-				greenValue = 0;
-				blueValue = 0;
-			}
-
-			if(value) {
-				Serial.print("value: ");
-				Serial.println(value);
-			}
-			
-			analogWrite(REDPIN, redValue);
-			analogWrite(GREENPIN, greenValue);
-			analogWrite(BLUEPIN, blueValue);
-			
-			Serial.print("R: ");
-			Serial.print(redValue);
-			Serial.print(" G: ");
-			Serial.print(greenValue);
-			Serial.print(" B: ");
-			Serial.println(blueValue);
-			Serial.println("");
+			redValue = 0;
+			greenValue = 0;
+			blueValue = 0;
 		}
+
+		if(value) {
+			Serial.print("value: ");
+			Serial.println(value);
+		}
+		
+		analogWrite(REDPIN, redValue);
+		analogWrite(GREENPIN, greenValue);
+		analogWrite(BLUEPIN, blueValue);
+		
+		Serial.print("R: ");
+		Serial.print(redValue);
+		Serial.print(" G: ");
+		Serial.print(greenValue);
+		Serial.print(" B: ");
+		Serial.println(blueValue);
+		Serial.println("");
+
+		delay(3000);
 //		
 
 	
@@ -267,18 +301,20 @@
   boolean debounce(int pin) {
 	boolean state;
 	boolean previousState;
+	int sameCounter = 0;
 	
 	previousState = digitalRead(pin);
 	for (int counter = 0; counter < debounceDelay; counter++) {
 		delay(1);
+				
 		state = digitalRead(pin);
-		if (state != previousState) {
-			counter = 0;
+		if (state == 0) {
+			sameCounter++;
 			previousState = state;
 		}
 	}
 	
-	if(state == LOW) {
+	if(sameCounter == debounceDelay) {
 	  return true;
 	} else {
 	  return false;
@@ -286,7 +322,15 @@
   }
   
 	void loop(){
-		set_level();
+		// Check for button press
+		if (debounce(button)){
+			readingLights();
+		}
+		
+		// If the reading lights aren't on
+		if(lightMode == 0) {
+			set_level();
+		}		
 
 //		Serial.print("Level: ");
 //		Serial.println(level);
