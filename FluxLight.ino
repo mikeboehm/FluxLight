@@ -181,7 +181,7 @@
 		analogWrite(GREENPIN, greenValue);
 		analogWrite(BLUEPIN, blueValue);
 		
-		delay(3000);			  
+		delay(1000);			  
 	}
   
   
