@@ -8,9 +8,9 @@
 /* Set the appropriate digital I/O pin connections
   CE_PIN stands for "clock-enable"
   On some boards this may be labeled "RST", or */
-    uint8_t CE_PIN   = 12; // RST
-    uint8_t IO_PIN   = 11; // DAT
-    uint8_t SCLK_PIN = 10; // CLK
+    uint8_t CE_PIN   = 9; // RST
+    uint8_t IO_PIN   = 8; // DAT
+    uint8_t SCLK_PIN = 7; // CLK
     
 /* Left to right when plugged into a breadboard
 	VCC
