@@ -49,14 +49,14 @@
 	
 //	int sunriseTime[] = {7,0}; // 07:00am
 //	int dawn[] = {7,0}; // 11:00pm
-	int dawn[] = {7, 0}; // 11:00pm
+	int dawn[] = {7, 00}; // 11:00pm
 	int preDawnDurationInMinutes = 20; // The time it takes to fade the red in
 	int sunriseDurationInMinutes = 40; // The time it takes from red to white
 	int	totalSequenceDuration = preDawnDurationInMinutes + sunriseDurationInMinutes;
 	
 	
-	int autoShutoffDelay = 60; // How long to leave light on for
-		
+	int autoShutoffDelay = 60; // Number of minutes to leave light on for after dawn
+
 	int currentTime[] = {0,0}; // Set to zero
 	
 	// Time of dawn/sunrise in minutes
@@ -75,6 +75,8 @@
 	float blueMax = readingLightColour[2];
 	
 	void setup() {
+		autoShutoffDelay = autoShutoffDelay * 60; // Convert to seconds
+
 		// Set pin modes
 		pinMode(REDPIN, OUTPUT);
 		pinMode(GREENPIN, OUTPUT);
@@ -119,7 +121,11 @@
 		}
 	}
 	
-	int set_level(){
+	void set_level(){
+		int timeOfDawnInSeconds = timeOfDawnInMinutes * 60;
+		int timeToBeginSunriseSequenceInSeconds = timeToBeginSunriseSequence * 60;
+		int preDawnDurationInSeconds = preDawnDurationInMinutes * 60;
+		int sunriseDurationInSeconds = sunriseDurationInMinutes * 60;
 		float value = 0; // Value of either Red or Green AND Blue RGBs
 	//	check the time
 	  	/* Get the current time and date from the chip */
@@ -133,30 +139,36 @@
 	    // time.day
 	    // Day 1 is Sunday
 	    int currentTimeInMinutes = (time.hr * 60) + time.min;      
+	    int currentTimeInSeconds = (currentTimeInMinutes * 60) + time.sec;
+	    
 	    
 		// if time is <= dawnTime & time >= sequenceBeginTime
-		if(currentTimeInMinutes <= timeOfDawnInMinutes & currentTimeInMinutes >= timeToBeginSunriseSequence) {
+		if(currentTimeInSeconds <= timeOfDawnInSeconds & currentTimeInSeconds >= timeToBeginSunriseSequenceInSeconds) {
 			int minutesIntoSequence = totalSequenceDuration - (timeOfDawnInMinutes - currentTimeInMinutes);
+			int secondsIntoSeqeunce = (minutesIntoSequence * 60) + time.sec;
 
 			// if we're in preDawn mode
-			if(minutesIntoSequence <= preDawnDurationInMinutes) {				
+			if(secondsIntoSeqeunce <= preDawnDurationInSeconds) {				
+//				Serial.println("Pre-dawn mode");
 				// set RGB values accordingly
-				value = (255/preDawnDurationInMinutes) * minutesIntoSequence;
+				value = (255/(float)preDawnDurationInSeconds) * secondsIntoSeqeunce;
 				redValue = floor(value);
 				greenValue = 0;
 				blueValue = 0;
+				
 			// else if we're in sunrise mode
-			} else if (minutesIntoSequence > preDawnDurationInMinutes) {
+			} else if (secondsIntoSeqeunce > preDawnDurationInSeconds) {
+//				Serial.println("Sunrise mode");
 				// set RGB values accordingly				
-				value = (255/sunriseDurationInMinutes) * (minutesIntoSequence-preDawnDurationInMinutes);
+				value = ((255/(float)sunriseDurationInSeconds) * ((secondsIntoSeqeunce-preDawnDurationInSeconds)));
 
 				redValue = 255;
 				greenValue = floor(value);
 				blueValue = floor(value);
 			// else if time is > dawnTime && time <= dawnTime + shutOffDelay
 			} 
-		} else if (currentTimeInMinutes > timeOfDawnInMinutes & currentTimeInMinutes < (timeOfDawnInMinutes + autoShutoffDelay)) {
-			Serial.println("shutoff delay mode");
+		} else if (currentTimeInSeconds > timeOfDawnInSeconds & currentTimeInSeconds < (timeOfDawnInSeconds + autoShutoffDelay)) {
+//			Serial.println("shutoff delay mode");
 
 			// keep lights on
 			redValue = 255;
@@ -164,7 +176,7 @@
 			blueValue = 255;
 		// we're neither in sunrise mode, nor shutOffDelay mode
 		} else {
-			Serial.println("Fast asleep");
+//			Serial.println("Fast asleep");
 
 			redValue = 0;
 			greenValue = 0;
@@ -172,8 +184,8 @@
 		}
 
 		if(value) {
-			Serial.print("value: ");
-			Serial.println(value);
+//			Serial.print("value: ");
+//			Serial.println(value);
 		}
 		
 		// Set colours
@@ -181,7 +193,7 @@
 		analogWrite(GREENPIN, greenValue);
 		analogWrite(BLUEPIN, blueValue);
 		
-		delay(1000);			  
+		delay(2000);			  
 	}
   
   
