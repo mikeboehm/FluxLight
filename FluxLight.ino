@@ -87,6 +87,8 @@
 
 
 		Serial.begin(9600);
+		// while the serial stream is not open, do nothing:
+//		while (!Serial) ;
 		Serial.println("FluxLight 3000 initiated...");
 
 		Serial.print("Dawn is at: ");
