@@ -69,7 +69,7 @@
 	// reading light settings
 	int readingLightColour[] = {255,100,0};
 	int lightMode = 0;
-	int  fadeTime = 100;
+	int  fadeTime = 255;
 	float redMax = readingLightColour[0];
 	float greenMax = readingLightColour[1];
 	float blueMax = readingLightColour[2];
