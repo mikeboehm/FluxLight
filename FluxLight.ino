@@ -259,22 +259,18 @@
 //		delay(3000);
 	}
 
-  void make_it_light(int level) {
-	  //  Write to pins
-	  analogWrite(REDPIN, level);
-//	  analogWrite(GREENPIN, level);
-//	  analogWrite(BLUEPIN, level);
-
-  }
-
   void fadeIn() {
 	Serial.println("fadeIn");
 	for(int i = 0; i <= fadeTime; i++) {
 	  // Get colours
 //	  Serial.println((redMax / fadeTime) * i);
-	  redValue = floor((redMax / fadeTime) * i);
-	  greenValue = floor((greenMax / fadeTime) * i);
-	  blueValue = floor((blueMax / fadeTime) * i);
+	  float redValueFloat = (redMax / fadeTime) * i;
+	  float greenValueFloat = (greenMax / fadeTime) * i;
+	  float blueValueFloat = (blueMax / fadeTime) * i;
+	  
+	  redValue = floor(redValueFloat);
+	  greenValue = floor(greenValueFloat);
+	  blueValue = floor(blueValueFloat);
 
 	  // Debug
 	  Serial.print(redValue);
@@ -287,16 +283,21 @@
 	  analogWrite(REDPIN, redValue);
 	  analogWrite(GREENPIN, greenValue);
 	  analogWrite(BLUEPIN, blueValue);
-	  delay(3);
+	  delay(2);
 	}
   }
 
   void fadeOut() {
 	Serial.println("fadeOut");
 	for(int i = fadeTime; i >= 0; i--) {
-	  redValue = floor((redMax / fadeTime) * i);
-	  greenValue = floor((greenMax / fadeTime) * i);
-	  blueValue = floor((blueMax / fadeTime) * i);
+  	  float redValueFloat = (redMax / fadeTime) * i;
+	  float greenValueFloat = (greenMax / fadeTime) * i;
+	  float blueValueFloat = (blueMax / fadeTime) * i;
+	  
+	  redValue = floor(redValueFloat);
+	  greenValue = floor(greenValueFloat);
+	  blueValue = floor(blueValueFloat);
+
 	  Serial.print(redValue);
 	  Serial.print(", ");
 	  Serial.print(greenValue);
@@ -305,7 +306,7 @@
 	  analogWrite(REDPIN, redValue);
 	  analogWrite(GREENPIN, greenValue);
 	  analogWrite(BLUEPIN, blueValue);
-	  delay(3);
+	  delay(2);
 	}
   }
 
