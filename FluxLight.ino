@@ -197,7 +197,9 @@
 
 		// Set colours
 		analogWrite(REDPIN, redValue);
+		delay(20);
 		analogWrite(GREENPIN, greenValue);
+		delay(20);
 		analogWrite(BLUEPIN, blueValue);
 
 		delay(2000);
