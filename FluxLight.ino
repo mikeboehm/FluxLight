@@ -143,6 +143,11 @@
 	    int currentTimeInMinutes = (time.hr * 60) + time.min;
 	    int currentTimeInSeconds = (currentTimeInMinutes * 60) + time.sec;
 
+		if(time.sec == 0) {
+			Serial.print("Current time is: ");
+		    Serial.println(buf);
+
+		}
 
 		// if time is <= dawnTime & time >= sequenceBeginTime
 		if(currentTimeInSeconds <= timeOfDawnInSeconds & currentTimeInSeconds >= timeToBeginSunriseSequenceInSeconds) {
