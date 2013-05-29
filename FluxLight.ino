@@ -42,8 +42,9 @@
 	float redValue = 0;
 	float greenValue = 0;
 	float blueValue = 0;
-	
-	boolean state = 0; // Switch state
+
+	// Switch debounce
+	boolean state = 0; // Debounce state
 	const int debounceDelay = 10;	// Switch debounce
 
 	// Sunrise configuration
