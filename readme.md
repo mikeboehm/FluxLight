@@ -1,3 +1,4 @@
 Readme
-Holding down the button will increase the intensity of the light, before it hits the maximum and starts decreasing.
-There's a bug in that it doesn't start going up again when it gets back down to zero.
+Sunrise simulator
+The digital sunrise analogue.
+The sunrise simulator is designed to help you wake up before sunrise, particularly in the winter months. It does this by using lights to create a digital sunset analogue.
