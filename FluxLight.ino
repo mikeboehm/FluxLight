@@ -3,11 +3,18 @@
     #include <string.h>
     #include <DS1302.h>
 
-// Connect clock to 5v pin (Mike)
+	// Time of alarm
+	int dawn[] = {7, 00}; // eg 23:00
 
-/* Set the appropriate digital I/O pin connections
-  CE_PIN stands for "clock-enable"
-  On some boards this may be labeled "RST", or */
+
+
+/* Clock */
+
+
+
+/* 	Set the appropriate digital I/O pin connections
+	CE_PIN stands for "clock-enable"
+	On some boards this may be labeled "RST", or */
     uint8_t CE_PIN   = 9; // RST
     uint8_t IO_PIN   = 8; // DAT
     uint8_t SCLK_PIN = 7; // CLK
@@ -19,45 +26,31 @@
 	DAT
 	RST
 */
-
- /* Create buffers */
-	char buf[50];
-
-/* Create a DS1302 object */
-    DS1302 rtc(CE_PIN, IO_PIN, SCLK_PIN);
-
+	char buf[50]; // Buffer for time output
+    DS1302 rtc(CE_PIN, IO_PIN, SCLK_PIN); // Create a DS1302 object
+	int currentTime[] = {0,0};
 
 	// Define pins for LEDs
 	#define REDPIN 3
 	#define GREENPIN 5
 	#define BLUEPIN 6
+
+	// Pin for the button
 	const int button = 2;
 
-	// Define global variables
-	// COlour values
+	// Initial colour values
 	float redValue = 0;
 	float greenValue = 0;
 	float blueValue = 0;
-	boolean state = 0;
-	const int debounceDelay = 10;
-	// Whether light is on or off
-//	int lightState = 0;
-	//int colour[] = {255,142,0};
+	
+	boolean state = 0; // Switch state
+	const int debounceDelay = 10;	// Switch debounce
 
-//	int colour[] = {77,153,25};
-
-
-//	int sunriseTime[] = {7,0}; // 07:00am
-//	int dawn[] = {7,0}; // 11:00pm
-	int dawn[] = {7, 00}; // 11:00pm
+	// Sunrise configuration
 	int preDawnDurationInMinutes = 20; // The time it takes to fade the red in
 	int sunriseDurationInMinutes = 40; // The time it takes from red to white
 	int	totalSequenceDuration = preDawnDurationInMinutes + sunriseDurationInMinutes;
-
-
 	int autoShutoffDelay = 60; // Number of minutes to leave light on for after dawn
-
-	int currentTime[] = {0,0}; // Set to zero
 
 	// Time of dawn/sunrise in minutes
 	int timeOfDawnInMinutes = (dawn[0] * 60) + dawn[1];
@@ -65,8 +58,7 @@
 	// Calculate the time to start sequence
 	int timeToBeginSunriseSequence = timeOfDawnInMinutes - totalSequenceDuration;
 
-
-	// reading light settings
+	// Reading-light settings
 	int readingLightColour[] = {255,100,0};
 	int lightMode = 0;
 	int  fadeTime = 255;
@@ -90,7 +82,7 @@
 		// while the serial stream is not open, do nothing:
 //		while (!Serial) ;
 		Serial.println("FluxLight 3000 initiated...");
-
+		
 		Serial.print("Dawn is at: ");
 		Serial.print(dawn[0]);
 		Serial.print(":");
