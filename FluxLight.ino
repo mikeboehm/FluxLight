@@ -75,13 +75,14 @@
 		pinMode(GREENPIN, OUTPUT);
 		pinMode(BLUEPIN, OUTPUT);
 		pinMode(button, INPUT);
-		int lightState = 0;
 		digitalWrite(button, HIGH);
+		
+		int lightState = 0;
 
 
 		Serial.begin(9600);
 		// while the serial stream is not open, do nothing:
-//		while (!Serial) ;
+//		while (!Serial) ; // Uncomment this line when debugging using a leonardo
 		Serial.println("FluxLight 3000 initiated...");
 		
 		Serial.print("Dawn is at: ");
@@ -106,6 +107,17 @@
 	    Serial.println(buf);
 	}
 
+	void loop(){
+		// Check for button press
+		if (debounce(button)){
+			readingLights();
+		}
+
+		// If the reading lights aren't on, continue the simulator
+		if(lightMode == 0) {
+			set_level();
+		}
+	}
 	void readingLights() {
 		if(lightMode == 0) {
 			fadeIn();
@@ -113,6 +125,57 @@
 		} else {
 			fadeOut();
 			lightMode = 0;
+		}
+	}
+	
+	// Turns on the reading-light
+	void fadeIn() {
+		Serial.println("fadeIn");
+		for(int i = 0; i <= fadeTime; i++) {
+			// Get colours
+			float redValueFloat = (redMax / fadeTime) * i;
+			float greenValueFloat = (greenMax / fadeTime) * i;
+			float blueValueFloat = (blueMax / fadeTime) * i;
+		  
+			// Set colours
+			redValue = floor(redValueFloat);
+			greenValue = floor(greenValueFloat);
+			blueValue = floor(blueValueFloat);
+						
+			//  Write to pins
+			setLEDs(redValue, greenValue, blueValue);
+		}
+	}
+	
+	void setLEDs(int red, int green, int blue) {
+		//  Write to pins
+		analogWrite(REDPIN, red);
+		analogWrite(GREENPIN, green);
+		analogWrite(BLUEPIN, blue);
+		delay(1);
+		
+		
+		Serial.print(red);
+		Serial.print(", ");
+		Serial.print(green);
+		Serial.print(", ");
+		Serial.println(blue);
+	}
+	
+	// Turns off the reading-light
+	void fadeOut() {
+		Serial.println("fadeOut");
+		for(int i = fadeTime; i >= 0; i--) {
+			float redValueFloat = (redMax / fadeTime) * i;
+			float greenValueFloat = (greenMax / fadeTime) * i;
+			float blueValueFloat = (blueMax / fadeTime) * i;
+			
+			redValue = floor(redValueFloat);
+			greenValue = floor(greenValueFloat);
+			blueValue = floor(blueValueFloat);
+			
+			//  Write to pins
+			setLEDs(redValue, greenValue, blueValue);
 		}
 	}
 
@@ -123,13 +186,13 @@
 		int sunriseDurationInSeconds = sunriseDurationInMinutes * 60;
 		float value = 0; // Value of either Red or Green AND Blue RGBs
 	//	check the time
-	  	/* Get the current time and date from the chip */
+	  	// Get current time
 		Time time = rtc.time();
 
 		// Format time into DATETIME
-		  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-	           time.yr, time.mon, time.date,
-	           time.hr, time.min, time.sec);
+		snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+			time.yr, time.mon, time.date,
+			time.hr, time.min, time.sec);
 
 	    // time.day
 	    // Day 1 is Sunday
@@ -150,7 +213,6 @@
 			// if we're in preDawn mode
 			if(secondsIntoSeqeunce <= preDawnDurationInSeconds) {
 //				Serial.println("Pre-dawn mode");
-				// set RGB values accordingly
 				value = (255/(float)preDawnDurationInSeconds) * secondsIntoSeqeunce;
 				redValue = floor(value);
 				greenValue = 0;
@@ -159,7 +221,7 @@
 			// else if we're in sunrise mode
 			} else if (secondsIntoSeqeunce > preDawnDurationInSeconds) {
 //				Serial.println("Sunrise mode");
-				// set RGB values accordingly
+
 				value = ((255/(float)sunriseDurationInSeconds) * ((secondsIntoSeqeunce-preDawnDurationInSeconds)));
 
 				redValue = 255;
@@ -183,123 +245,36 @@
 			blueValue = 0;
 		}
 
-		if(value) {
-//			Serial.print("value: ");
-//			Serial.println(value);
-		}
-
-		// Set colours
-		analogWrite(REDPIN, redValue);
-		delay(20);
-		analogWrite(GREENPIN, greenValue);
-		delay(20);
-		analogWrite(BLUEPIN, blueValue);
-
-		delay(2000);
+		setLEDs(redValue, greenValue, blueValue);
+		
 	}
 
-
-  void print_time() {
-	/* Get the current time and date from the chip */
-	Time time = rtc.time();
-
-	// Format time into DATETIME
-	  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-           time.yr, time.mon, time.date,
-           time.hr, time.min, time.sec);
-
-	/* Print the formatted string to serial so we can see the time */
-		Serial.println(buf);
-
-}
-
-  // Button debouncer
-  boolean debounce(int pin) {
-	boolean state;
-	boolean previousState;
-	int sameCounter = 0;
-
-	previousState = digitalRead(pin);
-	for (int counter = 0; counter < debounceDelay; counter++) {
-		delay(1);
-
-		state = digitalRead(pin);
-		if (state == 0) { // Button is currently being pressed
-			sameCounter++;
-			previousState = state;
+	// Button debouncer
+	boolean debounce(int pin) {
+		boolean state;
+		boolean previousState;
+		int sameCounter = 0;
+		
+		previousState = digitalRead(pin);
+		for (int counter = 0; counter < debounceDelay; counter++) {
+			delay(1);
+		
+			state = digitalRead(pin);
+			if (state == 0) { // Button is currently being pressed
+				sameCounter++;
+				previousState = state;
+			}
+		}
+		
+		// If the state has been the same for the the requisite number of miliseconds
+		if(sameCounter == debounceDelay) {
+		  return true;
+		} else {
+		  return false;
 		}
 	}
 
-	// If the state has been the same for the the requisite number of miliseconds
-	if(sameCounter == debounceDelay) {
-	  return true;
-	} else {
-	  return false;
-	}
-  }
 
-	void loop(){
-		// Check for button press
-		if (debounce(button)){
-			readingLights();
-		}
 
-		// If the reading lights aren't on, continue the simulator
-		if(lightMode == 0) {
-			set_level();
-		}
 
-//		delay(3000);
-	}
-
-  void fadeIn() {
-	Serial.println("fadeIn");
-	for(int i = 0; i <= fadeTime; i++) {
-	  // Get colours
-//	  Serial.println((redMax / fadeTime) * i);
-	  float redValueFloat = (redMax / fadeTime) * i;
-	  float greenValueFloat = (greenMax / fadeTime) * i;
-	  float blueValueFloat = (blueMax / fadeTime) * i;
-	  
-	  redValue = floor(redValueFloat);
-	  greenValue = floor(greenValueFloat);
-	  blueValue = floor(blueValueFloat);
-
-	  // Debug
-	  Serial.print(redValue);
-	  Serial.print(", ");
-	  Serial.print(greenValue);
-	  Serial.print(", ");
-	  Serial.println(blueValue);
-
-	  //  Write to pins
-	  analogWrite(REDPIN, redValue);
-	  analogWrite(GREENPIN, greenValue);
-	  analogWrite(BLUEPIN, blueValue);
-	  delay(2);
-	}
-  }
-
-  void fadeOut() {
-	Serial.println("fadeOut");
-	for(int i = fadeTime; i >= 0; i--) {
-  	  float redValueFloat = (redMax / fadeTime) * i;
-	  float greenValueFloat = (greenMax / fadeTime) * i;
-	  float blueValueFloat = (blueMax / fadeTime) * i;
-	  
-	  redValue = floor(redValueFloat);
-	  greenValue = floor(greenValueFloat);
-	  blueValue = floor(blueValueFloat);
-
-	  Serial.print(redValue);
-	  Serial.print(", ");
-	  Serial.print(greenValue);
-	  Serial.print(", ");
-	  Serial.println(blueValue);
-	  analogWrite(REDPIN, redValue);
-	  analogWrite(GREENPIN, greenValue);
-	  analogWrite(BLUEPIN, blueValue);
-	  delay(2);
-	}
-  }
 
